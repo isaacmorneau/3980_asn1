@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "menu.h"
+#include "Physical.h"
 
 char Name[] = "Assignment 1 Comm Shell";
 char str[80] = "";
@@ -20,28 +21,32 @@ LPCSTR	lpszCommName_3 = "com3";
 COMMCONFIG	cc;
 HANDLE hComm;
 
+//Physical layer object
+Physical *phs = new Physical();
+
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	LPSTR lspszCmdParam, int nCmdShow)
 {
 	HWND hwnd;
 	MSG Msg;
 	WNDCLASSEX Wcl;
+	{
+		Wcl.cbSize = sizeof(WNDCLASSEX);
+		Wcl.style = CS_HREDRAW | CS_VREDRAW;
+		Wcl.hIcon = LoadIcon(NULL, IDI_APPLICATION); // large icon 
+		Wcl.hIconSm = NULL; // use small version of large icon
+		Wcl.hCursor = LoadCursor(NULL, IDC_ARROW);  // cursor style
 
-	Wcl.cbSize = sizeof(WNDCLASSEX);
-	Wcl.style = CS_HREDRAW | CS_VREDRAW;
-	Wcl.hIcon = LoadIcon(NULL, IDI_APPLICATION); // large icon 
-	Wcl.hIconSm = NULL; // use small version of large icon
-	Wcl.hCursor = LoadCursor(NULL, IDC_ARROW);  // cursor style
+		Wcl.lpfnWndProc = WndProc;
+		Wcl.hInstance = hInst;
+		Wcl.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); //white background
+		Wcl.lpszClassName = Name;
 
-	Wcl.lpfnWndProc = WndProc;
-	Wcl.hInstance = hInst;
-	Wcl.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); //white background
-	Wcl.lpszClassName = Name;
-
-	Wcl.lpszMenuName = "MYMENU"; // The menu Class
-	Wcl.cbClsExtra = 0;      // no extra memory needed
-	Wcl.cbWndExtra = 0;
-
+		Wcl.lpszMenuName = "MYMENU"; // The menu Class
+		Wcl.cbClsExtra = 0;      // no extra memory needed
+		Wcl.cbWndExtra = 0;
+	}
 	if (!RegisterClassEx(&Wcl))
 		return 0;
 
@@ -50,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	//set it to the third 
+	//set it to the third com port
 	lpszCommName = lpszCommName_3;
 	if ((hComm = CreateFile(lpszCommName, GENERIC_READ | GENERIC_WRITE, 0,
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))
@@ -97,12 +102,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 				break;
 			break; 
 		case IDM_COM3:
-				cc.dwSize = sizeof(COMMCONFIG);
-				cc.wVersion = 0x100;
-				GetCommConfig(hComm, &cc, &cc.dwSize);
-				if (!CommConfigDialog(lpszCommName, hwnd, &cc))
-					break;
+			cc.dwSize = sizeof(COMMCONFIG);
+			cc.wVersion = 0x100;
+			GetCommConfig(hComm, &cc, &cc.dwSize);
+			if (!CommConfigDialog(lpszCommName, hwnd, &cc))
 				break;
+			break;
+		case IDM_RUN:
+			phs->read();
+			break;
+		case IDM_EXIT:
+			PostQuitMessage(0);
+			break;
 		}
 		break;
 	case WM_CHAR:// Process keystroke
