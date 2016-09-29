@@ -1,0 +1,14 @@
+#pragma once
+#include "menu.h"
+
+MYMENU MENU
+{
+POPUP "&Settings"
+{
+	MENUITEM "&COM1", IDM_COM1
+	MENUITEM "&COM2", IDM_COM2
+	MENUITEM "&COM3", IDM_COM3
+} 
+MENUITEM "&Run", IDM_RUN
+MENUITEM "&Exit", IDM_EXIT
+}
