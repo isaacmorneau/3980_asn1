@@ -22,7 +22,7 @@ COMMCONFIG	cc;
 HANDLE hComm;
 
 //Physical layer object
-Physical *phs = new Physical();
+Physical *phs;// = new Physical(&hComm);
 
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
@@ -64,6 +64,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 		MessageBox(NULL, "Error opening COM port:", "", MB_OK);
 		return FALSE;
 	}
+	//com is created, 
+	phs = new Physical(&hComm, &hwnd);
 
 	while (GetMessage(&Msg, NULL, 0, 0))
 	{
