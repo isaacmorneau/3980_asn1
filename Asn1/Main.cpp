@@ -12,23 +12,13 @@ char str[80] = "";//output buffer
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-//the different com file names
-LPCSTR	lpszCommName[] = { "COM1", "COM2", "COM3", "COM4" };
-
-COMMCONFIG	cc;
-
-//stored in session
-//HANDLE hComm;
-//filewide window handle to allow agregate functions
+//filewide window handle to allow function encapsulation
 HWND drawHwnd;
 
 //Physical layer object
 Physical *phs;
 //Session layer object
 Session *sesh;
-
-//keep track of current port
-int current_Com_Port = 3;
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	LPSTR lspszCmdParam, int nCmdShow)
@@ -60,21 +50,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	//set the cc params
-	cc.dwSize = sizeof(COMMCONFIG);
-	cc.wVersion = 0x100;
 
 	//level inits(make sure its before the message loop...)
 	phs = new Physical();
 	sesh = new Session();
-
-	//default to 4th port
-	if (!sesh->setSession(lpszCommName[current_Com_Port]))
-	{
-		MessageBox(NULL, "Error opening COM port:", lpszCommName[current_Com_Port], MB_OK);
-		return FALSE;
-	}
-	
 
 	while (GetMessage(&Msg, NULL, 0, 0))
 	{
@@ -107,32 +86,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 		switch (LOWORD(wParam))
 		{
 		case IDM_COM1:
-			current_Com_Port = 0; 
-			sesh->setSession(lpszCommName[current_Com_Port]);
-			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
-				break;
+			sesh->setSession(0, hwnd);
 			break;
 		case IDM_COM2:
-			current_Com_Port = 1;
-			sesh->setSession(lpszCommName[current_Com_Port]);
-			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
-				break;
+			sesh->setSession(1, hwnd);
 			break; 
 		case IDM_COM3:
-			current_Com_Port = 2;
-			sesh->setSession(lpszCommName[current_Com_Port]);
-			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
-				break;
+			sesh->setSession(2, hwnd);
 			break;
 		case IDM_COM4:
-			current_Com_Port = 3;
-			sesh->setSession(lpszCommName[current_Com_Port]);
-			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
-				break;
+			sesh->setSession(3, hwnd);
 			break;
 		case IDM_RUN:
 			phs->read(sesh, drawChar);
