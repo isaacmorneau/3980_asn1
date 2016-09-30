@@ -1,34 +1,27 @@
 #pragma once
 #include <Windows.h>
 #include <string>
-#define CBUFF char
+#include "Session.h"
 class Physical {
 public:
-	Physical(HANDLE*,HWND*);
+	Physical();
 	~Physical();
 	//read creates thread
-	void read();
-	char getBuffer();
-	void write(char);
+	void read(Session *, void (*displayChar)(char));
+	void stopRead();
+	void write(Session *,char);
 private:
 	//thread function
 	static DWORD WINAPI readThread(LPVOID);
 	//for thread id
-	LPDWORD hReadThreadId;
-	//for com port handle
-	HANDLE* hComm;
-	//for window handle
-	HWND* hwnd;
-	//for create thread handle
-	HANDLE hThread;
+	LPDWORD hReadThreadId = 0;
+	//for create thread handle for future termination
+	HANDLE hThread = NULL;
 	
-	//character to read from for the paint event
-	//todo make it a queue of some sort
-	CBUFF displayBuff = '0';
+	bool threadRunning = false;
 };
 
 typedef struct {
 	HANDLE* hComm;
-	CBUFF* cBuff;
-	HWND* hwnd;
+	void (*displayChar)(char);
 } readStruct;

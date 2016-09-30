@@ -21,6 +21,9 @@
     <ClCompile Include="Physical.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="menu.h">
@@ -28,6 +31,9 @@
     </ClInclude>
     <ClInclude Include="Physical.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

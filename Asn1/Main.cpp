@@ -1,29 +1,34 @@
 // Program WinMenu.cpp
-
 #define STRICT
 
 #include <windows.h>
 #include <stdio.h>
 #include "menu.h"
 #include "Physical.h"
+#include "Session.h"
 
 char Name[] = "Assignment 1 Comm Shell";
-char str[80] = "";
+char str[80] = "";//output buffer
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-#pragma warning (disable: 4096)
+//the different com file names
+LPCSTR	lpszCommName[] = { "COM1", "COM2", "COM3", "COM4" };
 
-//the different com file name
-LPCSTR	lpszCommName;
-LPCSTR	lpszCommName_1 = "com1";
-LPCSTR	lpszCommName_2 = "com2";
-LPCSTR	lpszCommName_3 = "com3";
 COMMCONFIG	cc;
-HANDLE hComm;
+
+//stored in session
+//HANDLE hComm;
+//filewide window handle to allow agregate functions
+HWND drawHwnd;
 
 //Physical layer object
-Physical *phs;// = new Physical(&hComm);
+Physical *phs;
+//Session layer object
+Session *sesh;
 
+//keep track of current port
+int current_Com_Port = 3;
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	LPSTR lspszCmdParam, int nCmdShow)
@@ -55,17 +60,21 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	//set it to the third com port
-	lpszCommName = lpszCommName_3;
-	if ((hComm = CreateFile(lpszCommName, GENERIC_READ | GENERIC_WRITE, 0,
-		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL))
-		== INVALID_HANDLE_VALUE)
+	//set the cc params
+	cc.dwSize = sizeof(COMMCONFIG);
+	cc.wVersion = 0x100;
+
+	//level inits(make sure its before the message loop...)
+	phs = new Physical();
+	sesh = new Session();
+
+	//default to 4th port
+	if (!sesh->setSession(lpszCommName[current_Com_Port]))
 	{
-		MessageBox(NULL, "Error opening COM port:", "", MB_OK);
+		MessageBox(NULL, "Error opening COM port:", lpszCommName[current_Com_Port], MB_OK);
 		return FALSE;
 	}
-	//com is created, 
-	phs = new Physical(&hComm, &hwnd);
+	
 
 	while (GetMessage(&Msg, NULL, 0, 0))
 	{
@@ -76,13 +85,21 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	return Msg.wParam;
 }
 
+void drawChar(char c) {
+	static unsigned p = 0;
+	static HDC hdc;
+	hdc = GetDC(drawHwnd);
+	sprintf_s(str, "%c", c);
+	TextOut(hdc, 10 * p++, 0, str, strlen(str));
+	ReleaseDC(drawHwnd, hdc);
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 	WPARAM wParam, LPARAM lParam)
 {
-	int response;
 	HDC hdc;
 	PAINTSTRUCT paintstruct;
-	static unsigned k = 0;
+	drawHwnd = hwnd;
 
 	switch (Message)
 	{
@@ -90,49 +107,56 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 		switch (LOWORD(wParam))
 		{
 		case IDM_COM1:
-			cc.dwSize = sizeof(COMMCONFIG);
-			cc.wVersion = 0x100;
-			GetCommConfig(hComm, &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName, hwnd, &cc))
+			current_Com_Port = 0; 
+			sesh->setSession(lpszCommName[current_Com_Port]);
+			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
+			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
 				break;
 			break;
 		case IDM_COM2:
-			cc.dwSize = sizeof(COMMCONFIG);
-			cc.wVersion = 0x100;
-			GetCommConfig(hComm, &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName, hwnd, &cc))
+			current_Com_Port = 1;
+			sesh->setSession(lpszCommName[current_Com_Port]);
+			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
+			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
 				break;
 			break; 
 		case IDM_COM3:
-			cc.dwSize = sizeof(COMMCONFIG);
-			cc.wVersion = 0x100;
-			GetCommConfig(hComm, &cc, &cc.dwSize);
-			if (!CommConfigDialog(lpszCommName, hwnd, &cc))
+			current_Com_Port = 2;
+			sesh->setSession(lpszCommName[current_Com_Port]);
+			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
+			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
+				break;
+			break;
+		case IDM_COM4:
+			current_Com_Port = 3;
+			sesh->setSession(lpszCommName[current_Com_Port]);
+			GetCommConfig(sesh->getCommHandle(), &cc, &cc.dwSize);
+			if (!CommConfigDialog(lpszCommName[current_Com_Port], hwnd, &cc))
 				break;
 			break;
 		case IDM_RUN:
-			phs->read();
+			phs->read(sesh, drawChar);
 			break;
+		case IDM_STOP:
+			phs->stopRead();
+			break;
+
 		case IDM_EXIT:
 			PostQuitMessage(0);
 			break;
 		}
 		break;
-	case WM_CHAR:// Process keystroke
-		hdc = GetDC(hwnd);// get device context
-		sprintf_s(str, "%c", (char)wParam);// Convert char to string
-		TextOut(hdc, 10 * k, 0, str, strlen(str));// output character	
-		k++;// increment the screen x-coordinate
-		ReleaseDC(hwnd, hdc);// Release device context
+	case WM_CHAR:
+		phs->write(sesh,(char)wParam);
 		break;
 
-	case WM_PAINT:		// Process a repaint message
-		hdc = BeginPaint(hwnd, &paintstruct); // Acquire DC
-		TextOut(hdc, 0, 0, str, strlen(str)); // output character
-		EndPaint(hwnd, &paintstruct); // Release DC
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &paintstruct);
+		TextOut(hdc, 0, 0, str, strlen(str));
+		EndPaint(hwnd, &paintstruct);
 		break;
 
-	case WM_DESTROY:	// Terminate program
+	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
 	default:

@@ -1,46 +1,48 @@
 #include "Physical.h"
 
-Physical::Physical(HANDLE* comm, HWND* window) {
-	this->hComm = comm;
-	this->hwnd = window;
+Physical::Physical() {
 	return;
 }
 Physical::~Physical() {
 	return;
 }
-char Physical::getBuffer() {
-	return this->displayBuff;
-}
-void Physical::read() {
+void Physical::read(Session* s, void (*displayChar)(char)) {
 	readStruct* rst = new readStruct;
-	rst->hComm = this->hComm;
-	rst->cBuff = &this->displayBuff;
-	rst->hwnd = this->hwnd;
-
-	this->hThread = CreateThread(NULL, 0, Physical::readThread, (LPVOID)(rst), 0, this->hReadThreadId);
-	if (this->hThread) {
-		//it was create yay
-	}
+	rst->hComm = s->getCommHandle();
+	rst->displayChar = displayChar;
+	if (!this->threadRunning)
+		this->hThread = CreateThread(NULL, 0, Physical::readThread, (LPVOID)(rst), 0, this->hReadThreadId);
+	else
+		MessageBox(NULL, "Read thread already running.", "Operation Denied", MB_OK);
+	if (this->hThread)
+		//it was created
+		this->threadRunning = true;
 }
+
 DWORD WINAPI Physical::readThread(LPVOID n) {
 	readStruct *c = (readStruct*)n;//the buffer in the physical object
 	LPDWORD acRead = 0;
-	HDC hdc;
-	char str[80];
-	unsigned int xpos = 0;
+	char buff;
 	while (1) {
-		ReadFile(c->hComm, c->cBuff, 1, acRead, NULL);
-		if (acRead > 0) {
-			hdc = GetDC(*c->hwnd);// get device context
-			sprintf_s(str, "%c", *c->cBuff);// Convert char to string
-			TextOut(hdc,10*xpos++, 0, str, strlen(str));// output character	
-			ReleaseDC(*c->hwnd, hdc);// Release device context
-		}
+		//read _a_ char
+		ReadFile(c->hComm, &buff, 1, acRead, NULL);
+		if (acRead > 0) 
+			c->displayChar(buff);
 	}
 	return 0;
 }
 
-void Physical::write(char){
+void Physical::stopRead() {
+	//kill the read thread if its running
+	if (this->threadRunning && TerminateThread(this->hThread, 0))
+		//sucessfully killed it.
+		this->threadRunning = false;
+}
+
+void Physical::write(Session *s,char c){
+	HANDLE comm = *s->getCommHandle();
+	LPDWORD written = 0;
+	WriteFile(comm, &c, 1, written, 0);
 	return;
 }
 
