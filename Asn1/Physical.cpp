@@ -4,6 +4,7 @@ Physical::Physical() {
 	return;
 }
 Physical::~Physical() {
+	this->stopRead();
 	return;
 }
 void Physical::read(Session* s, void (*displayChar)(char)) {
@@ -23,33 +24,31 @@ void Physical::read(Session* s, void (*displayChar)(char)) {
 	else
 		MessageBox(NULL, "Read thread already running.", "Operation Denied", MB_OK);
 
-	if (this->hThread)//it was created
+	if (this->hThread)
 		this->threadRunning = true;
 }
 
 DWORD WINAPI Physical::readThread(LPVOID n) {
-	readStruct *c = (readStruct*)n;//the buffer in the physical object
-	LPDWORD acRead = 0;
+	readStruct *c = (readStruct*)n;
+	DWORD acRead;
 	char buff;
+
 	while (1) {
-		ReadFile(c->hComm, &buff, 1, acRead, NULL);
-		if (acRead > 0) 
+		if (ReadFile(c->hComm, &buff, 1, &acRead, NULL) && acRead > 0)
 			c->displayChar(buff);
 	}
-	return 0;
+	return 1;
 }
 
 void Physical::stopRead() {
-	//kill the read thread if its running
 	if (this->threadRunning && TerminateThread(this->hThread, 0))
-		//sucessfully killed it.
 		this->threadRunning = false;
 }
 
 void Physical::write(Session *s,char c){
 	HANDLE comm = s->getCommHandle();
-	LPDWORD written = 0;
-	WriteFile(comm, &c, 1, written, 0);
+	DWORD written = 0;
+	WriteFile(comm, &c, 1, &written, NULL);
 	return;
 }
 

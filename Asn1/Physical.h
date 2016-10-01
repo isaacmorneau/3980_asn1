@@ -2,6 +2,9 @@
 #include <Windows.h>
 #include <string>
 #include "Session.h"
+
+#define BUFFSIZE 10
+
 class Physical {
 public:
 	Physical();
