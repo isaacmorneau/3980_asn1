@@ -46,7 +46,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 		return 0;
 
 	hwnd = CreateWindow(Name, Name, WS_OVERLAPPEDWINDOW, 10, 10,
-		600, 400, NULL, NULL, hInst, NULL);
+		800, 400, NULL, NULL, hInst, NULL);
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
@@ -64,13 +64,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	return Msg.wParam;
 }
 
-void drawChar(char c[]) {
-	static unsigned p = 0;
+void drawChar(char c) {
+	static unsigned x = 0;
+	static unsigned y = 0;
+	if (x == 79) {//width / 10 - 1
+		y++;
+		x = 0;
+	}
 	static HDC hdc;
 	hdc = GetDC(drawHwnd);
-	sprintf_s(str, "%s", c);
-	TextOut(hdc, 10 * p, 0, str, strlen(str));
-	p += strlen(c);
+	sprintf_s(str, "%c", c);
+	TextOut(hdc, 10 * x++, 20 * y, str, strlen(str));
 	ReleaseDC(drawHwnd, hdc);
 }
 
@@ -98,13 +102,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 		case IDM_COM4:
 			sesh->setSession(3, hwnd);
 			break;
+		case IDM_COM5:
+			sesh->setSession(4, hwnd);
+			break;
+		case IDM_COM6:
+			sesh->setSession(5, hwnd);
+			break;
+
 		case IDM_RUN:
 			phs->read(sesh, drawChar);
 			break;
 		case IDM_STOP:
 			phs->stopRead();
 			break;
-
 		case IDM_EXIT:
 			PostQuitMessage(0);
 			break;

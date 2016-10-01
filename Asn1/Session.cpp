@@ -1,8 +1,16 @@
 #include "Session.h"
 
 Session::Session() {
-	cc.dwSize = sizeof(COMMCONFIG);
-	cc.wVersion = 0x100;
+	this->cc.dwSize = sizeof(COMMCONFIG);
+	this->cc.wVersion = 0x100;
+
+	this->timeouts = { 0 };
+	this->timeouts.ReadIntervalTimeout = 1;
+	this->timeouts.ReadTotalTimeoutMultiplier = 1;
+	this->timeouts.ReadTotalTimeoutConstant = 1;
+	this->timeouts.WriteTotalTimeoutMultiplier = 1;
+	this->timeouts.WriteTotalTimeoutConstant = 1;
+
 	return;
 }
 
@@ -24,9 +32,14 @@ bool Session::setSession(int commPort, HWND hwnd) {
 	this->current_Com = commPort;
 
 	this->hComm = CreateFile(CommNames[this->current_Com], GENERIC_READ | GENERIC_WRITE,
-			0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+			0, NULL, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH/*FILE_FLAG_OVERLAPPED*/, NULL);
 	if(this->hComm == INVALID_HANDLE_VALUE){
 		MessageBox(NULL, "Error opening COM port:", CommNames[this->current_Com], MB_OK);
+		return false;
+	}
+
+	if (!SetCommTimeouts(this->hComm, &this->timeouts)) {
+		MessageBox(NULL, "Error opening setting COM Timeouts", CommNames[this->current_Com], MB_OK);
 		return false;
 	}
 

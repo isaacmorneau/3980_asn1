@@ -2,7 +2,14 @@
 #include <Windows.h>
 #include <string>
 
-static LPCSTR CommNames[] = { "COM5","COM5","COM5","COM5","COM5" };//{ "COM1", "COM2", "COM3", "COM4", "COM5", "COM6" };
+static LPCSTR CommNames[] = {
+	"COM1",
+	"COM2",
+	"COM3",
+	"COM4",
+	"COM5",
+	"COM6"
+};
 
 class Session {
 public:
@@ -14,4 +21,5 @@ private:
 	HANDLE hComm = INVALID_HANDLE_VALUE;
 	int current_Com = -1;
 	COMMCONFIG cc;
+	COMMTIMEOUTS timeouts;
 };

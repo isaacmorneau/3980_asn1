@@ -4,9 +4,10 @@ Physical::Physical() {
 	return;
 }
 Physical::~Physical() {
+	this->stopRead();
 	return;
 }
-void Physical::read(Session* s, void (*displayChar)(char*)) {
+void Physical::read(Session* s, void (*displayChar)(char)) {
 	HANDLE com = s->getCommHandle();
 	if (com == INVALID_HANDLE_VALUE) {
 		MessageBox(NULL, "No COMM port selected.", "Operation Denied", MB_OK);
@@ -15,7 +16,6 @@ void Physical::read(Session* s, void (*displayChar)(char*)) {
 	readStruct* rst = new readStruct;
 	rst->hComm = com;
 	rst->displayChar = displayChar;
-	rst->overlap = &this->overlap;
 
 	LPDWORD hReadThreadId = 0;
 
@@ -31,22 +31,13 @@ void Physical::read(Session* s, void (*displayChar)(char*)) {
 DWORD WINAPI Physical::readThread(LPVOID n) {
 	readStruct *c = (readStruct*)n;
 	DWORD acRead;
-	DWORD dwCommEvent;
-	char buff [BUFFSIZE];
-	//creepy
+	char buff;
 
 	while (1) {
-		if (WaitCommEvent(c->hComm, &dwCommEvent, NULL)) {
-			if (ReadFile(c->hComm, buff, 1, &acRead, NULL))
-				c->displayChar(buff);// A byte has been read; process it.
-			else
-				return 1;// An error occurred in the ReadFile call.
-			break;
-		} else {
-			//return 2;// Error in WaitCommEvent.
-		}
+		if (ReadFile(c->hComm, &buff, 1, &acRead, NULL) && acRead > 0)
+			c->displayChar(buff);
 	}
-	return 3;
+	return 1;
 }
 
 void Physical::stopRead() {
@@ -57,7 +48,7 @@ void Physical::stopRead() {
 void Physical::write(Session *s,char c){
 	HANDLE comm = s->getCommHandle();
 	DWORD written = 0;
-	WriteFile(comm, &c, 1, &written, &this->overlap);
+	WriteFile(comm, &c, 1, &written, NULL);
 	return;
 }
 
