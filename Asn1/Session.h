@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <string>
 
-static LPCSTR CommNames[] = { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6" };
+static LPCSTR CommNames[] = { "COM5","COM5","COM5","COM5","COM5" };//{ "COM1", "COM2", "COM3", "COM4", "COM5", "COM6" };
 
 class Session {
 public:

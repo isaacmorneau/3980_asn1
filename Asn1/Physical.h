@@ -25,5 +25,5 @@ private:
 typedef struct {
 	HANDLE hComm;
 	void (*displayChar)(char*);
-	//LPOVERLAPPED overlap;
+	LPOVERLAPPED overlap;
 } readStruct;
