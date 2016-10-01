@@ -64,12 +64,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 	return Msg.wParam;
 }
 
-void drawChar(char c) {
+void drawChar(char c[]) {
 	static unsigned p = 0;
 	static HDC hdc;
 	hdc = GetDC(drawHwnd);
-	sprintf_s(str, "%c", c);
-	TextOut(hdc, 10 * p++, 0, str, strlen(str));
+	sprintf_s(str, "%s", c);
+	TextOut(hdc, 10 * p, 0, str, strlen(str));
+	p += strlen(c);
 	ReleaseDC(drawHwnd, hdc);
 }
 

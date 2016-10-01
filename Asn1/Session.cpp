@@ -7,16 +7,21 @@ Session::Session() {
 }
 
 Session::~Session() {
+	if (this->hComm != INVALID_HANDLE_VALUE)
+		CloseHandle(this->hComm);
 	return;
 }
 HANDLE Session::getCommHandle() {
 	return this->hComm;
 }
 bool Session::setSession(int commPort, HWND hwnd) {
-	if (this->current_Com == commPort)
-		this->current_Com = commPort;
-	else if (this->current_Com == commPort)
+	if (this->current_Com == commPort) {
 		return true;
+	}
+
+	if (this->hComm != INVALID_HANDLE_VALUE)
+		CloseHandle(this->hComm);
+	this->current_Com = commPort;
 
 	this->hComm = CreateFile(CommNames[this->current_Com], GENERIC_READ | GENERIC_WRITE,
 			0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
@@ -26,7 +31,6 @@ bool Session::setSession(int commPort, HWND hwnd) {
 	}
 
 	GetCommConfig(this->hComm, &cc, &cc.dwSize);
-	//dont know if this return needs to be checked
 	CommConfigDialog(CommNames[this->current_Com], hwnd, &cc);
 
 	return true;
