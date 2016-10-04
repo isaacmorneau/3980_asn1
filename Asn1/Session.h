@@ -1,3 +1,20 @@
+/*
+-- SOURCE FILE: Session.cpp
+--
+-- PROGRAM: Simple COMM Shell
+--
+-- FUNCTIONS: 
+--
+-- DATE: October 1st, 2016
+--
+-- REVISIONS: (Date and Description)
+--
+-- DESIGNER: Isaac Morneau; A00958405
+--
+-- PROGRAMMER: Isaac Morneau; A00958405
+--
+-- NOTES:
+*/
 #pragma once
 #include <Windows.h>
 #include <string>

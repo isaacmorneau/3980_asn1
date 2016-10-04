@@ -115,6 +115,7 @@
     <ClCompile Include="Session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Main.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="Physical.h" />
     <ClInclude Include="Session.h" />

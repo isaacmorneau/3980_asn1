@@ -8,6 +8,7 @@ Session::Session() {
 	this->timeouts.ReadIntervalTimeout = 1;
 	this->timeouts.ReadTotalTimeoutMultiplier = 1;
 	this->timeouts.ReadTotalTimeoutConstant = 1;
+	//not needed but they act as extra security to deal with write errors
 	this->timeouts.WriteTotalTimeoutMultiplier = 1;
 	this->timeouts.WriteTotalTimeoutConstant = 1;
 
