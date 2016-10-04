@@ -16,7 +16,8 @@ public:
 	Session();
 	~Session();
 	HANDLE getCommHandle();
-	bool setSession(int, HWND hwnd);
+	bool comIsValid() {return this->hComm != INVALID_HANDLE_VALUE;}
+	bool setSession(int);
 private:
 	HANDLE hComm = INVALID_HANDLE_VALUE;
 	int current_Com = -1;

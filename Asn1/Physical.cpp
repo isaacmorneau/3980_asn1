@@ -9,7 +9,7 @@ Physical::~Physical() {
 }
 void Physical::read(Session* s, void (*displayChar)(char)) {
 	HANDLE com = s->getCommHandle();
-	if (com == INVALID_HANDLE_VALUE) {
+	if (!s->comIsValid()) {
 		MessageBox(NULL, "No COMM port selected.", "Operation Denied", MB_OK);
 		return;
 	}
@@ -17,10 +17,10 @@ void Physical::read(Session* s, void (*displayChar)(char)) {
 	rst->hComm = com;
 	rst->displayChar = displayChar;
 
-	LPDWORD hReadThreadId = 0;
+	DWORD hReadThreadId = 0;
 
 	if (!this->threadRunning)
-		this->hThread = CreateThread(NULL, 0, Physical::readThread, (LPVOID)(rst), 0, hReadThreadId);
+		this->hThread = CreateThread(NULL, 0, Physical::readThread, (LPVOID)(rst), 0, &hReadThreadId);
 	else
 		MessageBox(NULL, "Read thread already running.", "Operation Denied", MB_OK);
 
@@ -47,6 +47,10 @@ void Physical::stopRead() {
 
 void Physical::write(Session *s,char c){
 	HANDLE comm = s->getCommHandle();
+	if (!s->comIsValid()) {
+		MessageBox(NULL, "No COMM port selected.", "Operation Denied", MB_OK);
+		return;
+	}
 	DWORD written = 0;
 	WriteFile(comm, &c, 1, &written, NULL);
 	return;

@@ -13,11 +13,9 @@ char str[80] = "";//output buffer
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 //filewide window handle to allow function encapsulation
-HWND drawHwnd;
+HWND drawHwnd = 0;
 
-//Physical layer object
 Physical *phs;
-//Session layer object
 Session *sesh;
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
@@ -67,11 +65,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hprevInstance,
 void drawChar(char c) {
 	static unsigned x = 0;
 	static unsigned y = 0;
+	static HDC hdc;
 	if (x == 79) {//width / 10 - 1
 		y++;
 		x = 0;
 	}
-	static HDC hdc;
 	hdc = GetDC(drawHwnd);
 	sprintf_s(str, "%c", c);
 	TextOut(hdc, 10 * x++, 20 * y, str, strlen(str));
@@ -81,34 +79,33 @@ void drawChar(char c) {
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 	WPARAM wParam, LPARAM lParam)
 {
-	HDC hdc;
-	PAINTSTRUCT paintstruct;
-	drawHwnd = hwnd;
-
+	static HDC hdc;
+	static PAINTSTRUCT paintstruct;
+	if(!drawHwnd)
+		drawHwnd = hwnd;
 	switch (Message)
 	{
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
 		case IDM_COM1:
-			sesh->setSession(0, hwnd);
+			sesh->setSession(0);
 			break;
 		case IDM_COM2:
-			sesh->setSession(1, hwnd);
+			sesh->setSession(1);
 			break; 
 		case IDM_COM3:
-			sesh->setSession(2, hwnd);
+			sesh->setSession(2);
 			break;
 		case IDM_COM4:
-			sesh->setSession(3, hwnd);
+			sesh->setSession(3);
 			break;
 		case IDM_COM5:
-			sesh->setSession(4, hwnd);
+			sesh->setSession(4);
 			break;
 		case IDM_COM6:
-			sesh->setSession(5, hwnd);
+			sesh->setSession(5);
 			break;
-
 		case IDM_RUN:
 			phs->read(sesh, drawChar);
 			break;
@@ -123,13 +120,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 	case WM_CHAR:
 		phs->write(sesh,(char)wParam);
 		break;
-
 	case WM_PAINT:
 		hdc = BeginPaint(hwnd, &paintstruct);
 		TextOut(hdc, 0, 0, str, strlen(str));
 		EndPaint(hwnd, &paintstruct);
 		break;
-
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
